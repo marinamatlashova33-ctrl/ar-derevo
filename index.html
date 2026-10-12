@@ -3,68 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
 <title>AR — Дерево ИИ нашего ателье</title>
+
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif}
-#tip{position:fixed;z-index:5;top:12px;left:5%;width:90%;box-sizing:border-box;background:rgba(255,255,255,.94);padding:12px 14px;border-radius:14px;text-align:center;color:#245136;font-weight:700;font-size:14px;pointer-events:none}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial,sans-serif;
+}
+
+#tip{
+  position:fixed;
+  z-index:5;
+  top:12px;
+  left:5%;
+  width:90%;
+  box-sizing:border-box;
+  background:rgba(255,255,255,.94);
+  padding:12px 14px;
+  border-radius:14px;
+  text-align:center;
+  color:#245136;
+  font-weight:700;
+  font-size:14px;
+  pointer-events:none;
+}
 </style>
 </head>
+
 <body>
-<div id="tip">🌳 Разрешите камеру и наведите её на плакат «Дерево ИИ»</div>
-<a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;" embedded color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-<a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-<a-entity id="target" mindar-image-target="targetIndex: 0">
-  <!-- First safe visual test: a fuller trunk, branches and 5 leaves.
-       The proven MindAR scene/camera setup above is unchanged. -->
-  <a-entity id="tree" position="0 -0.18 0.10">
-    <a-cone position="0 0.22 0" radius-bottom="0.065" radius-top="0.035" height="0.55"
-            color="#765238" roughness="1"></a-cone>
 
-    <a-cylinder position="-0.10 0.40 0" radius="0.018" height="0.32"
-                rotation="0 0 42" color="#765238"></a-cylinder>
-    <a-cylinder position="0.11 0.42 0" radius="0.017" height="0.34"
-                rotation="0 0 -40" color="#765238"></a-cylinder>
-    <a-cylinder position="-0.16 0.52 0" radius="0.012" height="0.25"
-                rotation="0 0 67" color="#765238"></a-cylinder>
-    <a-cylinder position="0.17 0.54 0" radius="0.012" height="0.26"
-                rotation="0 0 -66" color="#765238"></a-cylinder>
+<div id="tip">
+🌳 Разрешите камеру и наведите её на плакат «Дерево ИИ»
+</div>
 
-    <a-entity class="ideaLeaf" position="-0.25 0.58 0.05" scale="0 0 0">
-      <a-sphere color="#ef476f" scale="0.075 0.12 0.018" rotation="0 0 -35"></a-sphere>
-    </a-entity>
-    <a-entity class="ideaLeaf" position="-0.10 0.68 0.06" scale="0 0 0">
-      <a-sphere color="#ffd166" scale="0.075 0.12 0.018" rotation="0 0 -12"></a-sphere>
-    </a-entity>
-    <a-entity class="ideaLeaf" position="0.06 0.70 0.07" scale="0 0 0">
-      <a-sphere color="#7bd389" scale="0.075 0.12 0.018" rotation="0 0 12"></a-sphere>
-    </a-entity>
-    <a-entity class="ideaLeaf" position="0.20 0.61 0.06" scale="0 0 0">
-      <a-sphere color="#4dabf7" scale="0.075 0.12 0.018" rotation="0 0 32"></a-sphere>
-    </a-entity>
-    <a-entity class="ideaLeaf" position="0.00 0.55 0.08" scale="0 0 0">
-      <a-sphere color="#b56cff" scale="0.075 0.12 0.018" rotation="0 0 -5"></a-sphere>
-    </a-entity>
+<a-scene
+  mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
+  embedded
+  color-space="sRGB"
+  renderer="colorManagement: true, physicallyCorrectLights"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
+
+  <!-- Реалистичная модель дерева -->
+  <a-assets timeout="60000">
+    <a-asset-item
+      id="treeModel"
+      src="./realistic_tree_AR_optimized.glb">
+    </a-asset-item>
+  </a-assets>
+
+  <!-- Рабочую камеру не меняем -->
+  <a-camera
+    position="0 0 0"
+    look-controls="enabled: false">
+  </a-camera>
+
+  <!-- Наш проверенный AR-маркер -->
+  <a-entity
+    id="target"
+    mindar-image-target="targetIndex: 0">
+
+    <!-- Настоящее 3D-дерево -->
+    <a-gltf-model
+      id="realTree"
+      src="#treeModel"
+      position="0 -0.35 0.08"
+      rotation="0 0 0"
+      scale="0 0 0">
+    </a-gltf-model>
+
   </a-entity>
-</a-entity>
+
 </a-scene>
+
 <script>
-const target=document.querySelector('#target');
-const leaves=[...document.querySelectorAll('.ideaLeaf')];
-const tip=document.querySelector('#tip');
-target.addEventListener('targetFound',()=>{
- tip.textContent='🌿 Дерево оживает — появляются листья идей!';
- leaves.forEach((leaf,i)=>{
-   leaf.removeAttribute('animation__grow');
-   leaf.setAttribute('scale','0 0 0');
-   setTimeout(()=>{
-     leaf.setAttribute('animation__grow',
-       'property: scale; to: 1 1 1; dur: 900; easing: easeOutElastic');
-   }, i*450);
- });
+const target = document.querySelector('#target');
+const tree = document.querySelector('#realTree');
+const tip = document.querySelector('#tip');
+
+target.addEventListener('targetFound', () => {
+
+  tip.textContent = '🌿 Дерево ИИ оживает!';
+
+  tree.removeAttribute('animation__grow');
+
+  tree.setAttribute('scale', '0 0 0');
+
+  tree.setAttribute(
+    'animation__grow',
+    'property: scale; to: 0.45 0.45 0.45; dur: 1800; easing: easeOutElastic'
+  );
 });
-target.addEventListener('targetLost',()=>{tip.textContent='🌳 Наведите камеру обратно на плакат';});
+
+target.addEventListener('targetLost', () => {
+  tip.textContent = '🌳 Наведите камеру обратно на плакат';
+});
 </script>
+
 </body>
-</html>
+  </html>
