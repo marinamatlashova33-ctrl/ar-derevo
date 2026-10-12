@@ -1,397 +1,143 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Живое AR-дерево нашего ателье</title>
+<title>Живое AR-дерево</title>
 
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
-html,body{
-  margin:0;
-  height:100%;
-  overflow:hidden;
-  font-family:Arial,sans-serif;
-  background:#10271b;
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: Arial, sans-serif;
 }
 
-#tip{
-  position:fixed;
-  top:12px;
-  left:5%;
-  width:90%;
-  box-sizing:border-box;
-  z-index:20;
-  padding:12px 14px;
-  border-radius:16px;
-  background:rgba(255,255,255,.94);
-  color:#245438;
-  text-align:center;
-  font-size:14px;
-  font-weight:700;
-  box-shadow:0 4px 18px #0003;
-  pointer-events:none;
+#message {
+  position: fixed;
+  z-index: 9999;
+  top: 15px;
+  left: 5%;
+  width: 90%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.94);
+  color: #285b38;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  pointer-events: none;
 }
 
-#counter{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:20;
-  padding:10px 18px;
-  border-radius:22px;
-  background:rgba(255,255,255,.92);
-  color:#255336;
-  font-size:14px;
-  font-weight:bold;
-  white-space:nowrap;
-  display:none;
-  pointer-events:none;
+#counter {
+  position: fixed;
+  z-index: 9999;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.94);
+  color: #285b38;
+  font-weight: bold;
+  display: none;
+  white-space: nowrap;
+  pointer-events: none;
 }
 </style>
-</head>
-
-<body>
-
-<div id="tip">
-🌳 Разрешите камеру и наведите её на картинку дерева
-</div>
-
-<div id="counter">
-🍃 Распустилось листьев: <span id="count">0</span>
-</div>
-
-<a-scene
-  mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; filterMinCF: 0.0001; filterBeta: 0.001;"
-  embedded
-  color-space="sRGB"
-  renderer="colorManagement: true; antialias: true; alpha: true"
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: false">
-
-  <a-camera
-    position="0 0 0"
-    look-controls="enabled: false">
-  </a-camera>
-
-  <a-entity
-    id="target"
-    mindar-image-target="targetIndex: 0">
-
-    <a-entity id="foliage"></a-entity>
-
-  </a-entity>
-
-</a-scene>
 
 <script>
+AFRAME.registerComponent('living-tree', {
 
-const BRANCH_POINTS=[
- [145,615],
- [185,510],
- [233,400],
- [310,480],
- [342,340],
- [382,430],
+  init: function () {
 
- [465,312],
- [493,402],
- [553,455],
- [610,317],
- [666,363],
- [731,337],
+    const THREE = AFRAME.THREE;
 
- [783,480],
- [861,432],
- [912,526],
- [835,596],
- [750,640],
- [686,559],
+    const target = this.el;
+    const group = new THREE.Group();
 
- [627,687],
- [569,579],
- [508,517],
- [443,620],
- [386,555],
- [318,665],
+    this.el.object3D.add(group);
 
- [245,720],
- [153,753],
- [91,677],
- [362,819],
- [443,729],
- [537,775],
+    const positions = [
 
- [629,803],
- [713,742],
- [812,757],
- [901,688],
- [747,877],
- [345,900]
-];
+      [-0.27, 0.35],
+      [-0.18, 0.39],
+      [-0.08, 0.42],
+      [ 0.03, 0.43],
+      [ 0.14, 0.40],
+      [ 0.25, 0.35],
 
-const COLORS=[
- '#77b93f',
- '#a9d85d',
- '#5eaa50',
- '#d6b14d',
- '#8dc966',
- '#e0c35c'
-];
+      [-0.34, 0.27],
+      [-0.23, 0.29],
+      [-0.12, 0.31],
+      [ 0.00, 0.32],
+      [ 0.12, 0.31],
+      [ 0.24, 0.28],
+      [ 0.34, 0.25],
 
-const target=document.getElementById('target');
-const container=document.getElementById('foliage');
-const tip=document.getElementById('tip');
-const counter=document.getElementById('counter');
-const countEl=document.getElementById('count');
+      [-0.37, 0.17],
+      [-0.27, 0.19],
+      [-0.17, 0.21],
+      [-0.06, 0.22],
+      [ 0.06, 0.22],
+      [ 0.17, 0.20],
+      [ 0.28, 0.18],
+      [ 0.37, 0.15],
 
-let leaves=[];
-let active=false;
-let started=0;
-let frame=0;
-let shown=0;
+      [-0.34, 0.08],
+      [-0.23, 0.10],
+      [-0.12, 0.11],
+      [ 0.00, 0.12],
+      [ 0.12, 0.10],
+      [ 0.23, 0.08],
+      [ 0.33, 0.06],
 
+      [-0.28,-0.01],
+      [-0.17, 0.01],
+      [-0.06, 0.03],
+      [ 0.06, 0.02],
+      [ 0.17, 0.00],
+      [ 0.27,-0.02],
 
-/* СОЗДАНИЕ ЛИСТОЧКА */
+      [-0.13,-0.08],
+      [ 0.13,-0.08]
 
-function makeLeaf(i,px,py){
+    ];
 
-  const THREE=AFRAME.THREE;
+    const colors = [
+      0x5f9f45,
+      0x79b84a,
+      0x8cc957,
+      0xa7ce63,
+      0x6aaa45,
+      0x95bf50
+    ];
 
-  const root=new THREE.Group();
+    this.leaves = [];
 
-  root.position.set(
-    px/1024-0.5,
-    (0.5-py/1536)*1.5,
-    0.018+i%4*0.003
-  );
+    positions.forEach((p, i) => {
 
-  const shape=new THREE.Shape();
+      const holder = new THREE.Group();
 
-  shape.moveTo(0,-0.037);
-
-  shape.bezierCurveTo(
-    -0.030,-0.012,
-    -0.033,0.021,
-    0,0.044
-  );
-
-  shape.bezierCurveTo(
-    0.033,0.020,
-    0.030,-0.015,
-    0,-0.037
-  );
-
-  const geo=new THREE.ShapeGeometry(shape,8);
-
-  const mat=new THREE.MeshStandardMaterial({
-    color:COLORS[i%COLORS.length],
-    side:THREE.DoubleSide,
-    roughness:0.85,
-    metalness:0,
-    transparent:true,
-    opacity:0.98
-  });
-
-  const leaf=new THREE.Mesh(geo,mat);
-
-  leaf.rotation.z=(i%7-3)*0.24;
-  leaf.rotation.y=(i%5-2)*0.19;
-
-  root.add(leaf);
-
-
-  /* прожилка листочка */
-
-  const veinGeo=
-    new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0,-0.026,0.001),
-      new THREE.Vector3(0,0.029,0.001)
-    ]);
-
-  const vein=
-    new THREE.Line(
-      veinGeo,
-      new THREE.LineBasicMaterial({
-        color:'#cbe4a0',
-        transparent:true,
-        opacity:0.48
-      })
-    );
-
-  vein.rotation.copy(leaf.rotation);
-
-  root.add(vein);
-
-  root.scale.setScalar(0.001);
-
-  root.userData={
-    index:i,
-    angle:i*1.71,
-    baseAngle:leaf.rotation.z,
-    leaf:leaf
-  };
-
-  return root;
-}
-
-
-/* СОЗДАЁМ 36 ЛИСТОЧКОВ */
-
-function init(){
-
-  const obj=container.object3D;
-
-  BRANCH_POINTS.forEach((p,i)=>{
-
-    const leaf=
-      makeLeaf(
-        i,
+      holder.position.set(
         p[0],
-        p[1]
+        p[1],
+        0.03 + (i % 4) * 0.003
       );
 
-    obj.add(leaf);
+      const shape = new THREE.Shape();
 
-    leaves.push(leaf);
+      shape.moveTo(0, -0.025);
 
-  });
-
-}
-
-
-/* АНИМАЦИЯ РАСПУСКАНИЯ */
-
-function animate(now){
-
-  frame=requestAnimationFrame(animate);
-
-  if(!active)return;
-
-  const elapsed=now-started;
-
-  let n=0;
-
-  leaves.forEach((leaf,i)=>{
-
-    const t=
-      (elapsed-500-i*235)/900;
-
-    if(t<=0){
-
-      leaf.scale.setScalar(0.001);
-
-      return;
-    }
-
-    n++;
-
-    const p=Math.min(1,t);
-
-    const ease=
-      1-Math.pow(1-p,3);
-
-    const pop=
-      1+
-      0.12*
-      Math.sin(
-        Math.min(1,t)*
-        Math.PI*2
-      )*
-      Math.max(0,1-p);
-
-    const size=ease*pop;
-
-    leaf.scale.set(
-      size,
-      size,
-      size
-    );
-
-
-    /* лёгкое покачивание */
-
-    leaf.rotation.y=
-      Math.sin(
-        now*0.0011+
-        leaf.userData.angle
-      )*0.13;
-
-    leaf.rotation.z=
-      Math.sin(
-        now*0.0009+
-        leaf.userData.angle
-      )*0.065;
-
-  });
-
-
-  if(n!==shown){
-
-    shown=n;
-
-    countEl.textContent=n;
-
-  }
-
-
-  if(n===leaves.length){
-
-    tip.textContent=
-      '🌿 Дерево ожило! Листочки мягко покачиваются.';
-
-  }
-
-}
-
-
-init();
-
-requestAnimationFrame(animate);
-
-
-/* КОГДА КАМЕРА УВИДЕЛА ДЕРЕВО */
-
-target.addEventListener(
-'targetFound',
-()=>{
-
-  active=true;
-
-  started=performance.now();
-
-  shown=0;
-
-  countEl.textContent='0';
-
-  counter.style.display='block';
-
-  tip.textContent=
-    '✨ Смотрите: на ветках распускаются листочки!';
-
-});
-
-
-/* КОГДА КАРТИНКА ПРОПАЛА ИЗ КАМЕРЫ */
-
-target.addEventListener(
-'targetLost',
-()=>{
-
-  active=false;
-
-  counter.style.display='none';
-
-  tip.textContent=
-    '🌳 Снова наведите камеру на картинку дерева';
-
-});
-
-</script>
-
-</body>
-  </html>
+      shape.bezierCurveTo(
+        -0.025, -0.010,
+        -0.028,  0.018,
+         0.000,  0.038
