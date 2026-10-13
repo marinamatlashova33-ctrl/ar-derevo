@@ -59,23 +59,23 @@ html,body{
     </a-asset-item>
   </a-assets>
 
-  <!-- Рабочую камеру не меняем -->
+  <!-- Камера -->
   <a-camera
     position="0 0 0"
     look-controls="enabled: false">
   </a-camera>
 
-  <!-- Наш проверенный AR-маркер -->
+  <!-- AR-маркер -->
   <a-entity
     id="target"
     mindar-image-target="targetIndex: 0">
 
-    <!-- Настоящее 3D-дерево -->
+    <!-- Реалистичное 3D-дерево -->
     <a-gltf-model
       id="realTree"
       src="#treeModel"
       position="0 -0.35 0.08"
-      rotation="0 0 0"
+      rotation="-90 0 0"
       scale="0 0 0">
     </a-gltf-model>
 
@@ -84,6 +84,7 @@ html,body{
 </a-scene>
 
 <script>
+
 const target = document.querySelector('#target');
 const tree = document.querySelector('#realTree');
 const tip = document.querySelector('#tip');
@@ -94,18 +95,22 @@ target.addEventListener('targetFound', () => {
 
   tree.removeAttribute('animation__grow');
 
-  tree.setAttribute('scale', '0 0 0');
+  tree.setAttribute('scale','0 0 0');
 
   tree.setAttribute(
     'animation__grow',
     'property: scale; to: 0.45 0.45 0.45; dur: 1800; easing: easeOutElastic'
   );
+
 });
 
 target.addEventListener('targetLost', () => {
+
   tip.textContent = '🌳 Наведите камеру обратно на плакат';
+
 });
+
 </script>
 
 </body>
-  </html>
+</html>
